@@ -1,47 +1,63 @@
-from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.output_parsers import PydanticOutputParser
 from src.config.settings import settings
+from langchain_core.prompts import ChatPromptTemplate
+
+from pydantic import BaseModel , Field
 
 
-# Step 1: Define expected output JSON schema using Pydantic
+
 class ClassificationResult(BaseModel):
-    action: str           # RAG | SEARCH | GITHUB_API
-    repo: str | None = None
-    reason: str
+    action:str = Field(... , description="RAG | SEARCH | GITHUB_API")
+    repo:str | None =Field(None , description="Repository full name if needed")
+    reason: str = Field(... , description="Why this classification was made")
 
 
-# Step 2: Build Classifier Agent
+
+
+parser = PydanticOutputParser(pydantic_object=ClassificationResult)
+
+
 class QueryClassifier:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        self.llm = ChatGoogleGenerativeAI(
+            model = "gemini-2.5-flash",
             temperature=0,
-            api_key=settings.OPENAI_API_KEY
+            google_api_key=settings.GEMINI_API_KEY
         )
-
-    def classify(self, query: str) -> ClassificationResult:
-        system_prompt = """
+        self.prompt=ChatPromptTemplate.from_messages([
+            ("system", """
 You are a routing classifier for a GitHub Assistant.
 
-Decide which action the system must take for the user query.
-Return JSON only, with keys: action, repo, reason.
+Your job is to decide which action the system must take for the user query.
+
+Return STRICT JSON using this schema:
+{schema}
 
 Rules:
-- If question is general GitHub knowledge → action = "RAG"
-- If question needs latest data → action = "SEARCH"
-- If question is about a specific repo (PRs, commits, stars) → action = "GITHUB_API"
-"""
+- If the question is general GitHub knowledge → RAG
+- If the question needs latest web results → SEARCH
+- If the question is about a specific GitHub repo (PRs, issues, stars, commits) → GITHUB_API
+"""),
+            ("user", "User query: {query}")
+        ]).partial(schema=parser.get_format_instructions())
 
-        user_prompt = f"User query: {query}\nReturn JSON only."
-
-        response = self.llm.invoke([
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ])
-
-        # Parse into Pydantic model
-        return ClassificationResult.model_validate_json(response.content)
+    def classify(self , query) -> ClassificationResult:
+        chain = self.prompt | self.llm | parser
+        # the prompt expects the variable name `query` (no trailing space)
+        return chain.invoke({"query": query})
+    
 
 
-# Utility function for outside use
-classifier = QueryClassifier()
+
+
+classifier_agent = QueryClassifier()
+
+
+
+
+if __name__ == "__main__":
+    result = classifier_agent.classify("How do I create a PR?")
+    print(result)
+
+
