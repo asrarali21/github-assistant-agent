@@ -56,8 +56,3 @@ classifier_agent = QueryClassifier()
 
 
 
-if __name__ == "__main__":
-    result = classifier_agent.classify("How do I create a PR?")
-    print(result)
-
-
