@@ -1,10 +1,11 @@
 from src.agents.classifier import classifier_agent , ClassificationResult
+from src.tools.github_api import get_open_pull_request
 
 def router_agent(decision : ClassificationResult):
     print(f"Routing to {decision.action} | Context {decision.repo}")
 
     if decision.action == "GITHUB_API":
-         print("running github api")
+        print(get_open_pull_request(decision.repo))
     elif decision.action == "SEARCH":
         print("running search")
     elif decision.action =="RAG":
