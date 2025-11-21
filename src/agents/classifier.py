@@ -29,22 +29,61 @@ class QueryClassifier:
             ("system", """
 You are a routing classifier for a GitHub Assistant.
 
-Your job is to decide which action the system must take for the user query.
+Your output determines which internal tool should be called.
 
-Return STRICT JSON using this schema:
+Return STRICT JSON in this schema:
 {schema}
 
-Rules:
-- If the question is general GitHub knowledge → RAG
-- If the question needs latest web results → SEARCH
-- If the question is about a specific GitHub repo (PRs, issues, stars, commits) → GITHUB_API
+## CLASSIFICATION RULES
+
+### 1️⃣ GITHUB_API
+Choose **GITHUB_API** when:
+- The question is about a specific GitHub repository.
+- Mentions patterns like: `owner/repo`
+- Involves:
+  - open PR count
+  - issues count
+  - stars
+  - forks
+  - contributors
+  - commits
+  - branches
+  - release tags
+  - workflows
+  - CI/CD status
+Examples:
+- "How many open PRs are in vercel/next.js?"
+- "List issues in microsoft/vscode"
+- "How many stars does vercel/next.js have?"
+
+### 2️⃣ SEARCH
+Choose **SEARCH** only when:
+- The query is a general internet question (not repo-specific).
+- The user wants something outside GitHub.
+Examples:
+- "Latest news about GitHub Actions"
+- "Search tutorials on GitHub PR workflow"
+- "Find top GitHub repos about machine learning"
+
+### 3️⃣ RAG
+Choose **RAG** when:
+- The query is about **GitHub concepts / knowledge**, NOT repo-specific.
+Examples:
+- "How to raise a PR?"
+- "What is a pull request?"
+- "What is GitHub Actions?"
+- "Explain merge conflicts."
+
+## Output fields:
+- action = RAG | SEARCH | GITHUB_API
+- repo = repository name in 'owner/repo' format OR null
+- reason = clear explanation of classification
 """),
-            ("user", "User query: {query}")
+    ("user", "User query: {query}")
         ]).partial(schema=parser.get_format_instructions())
 
     def classify(self , query) -> ClassificationResult:
         chain = self.prompt | self.llm | parser
-        # the prompt expects the variable name `query` (no trailing space)
         return chain.invoke({"query": query})
     
 

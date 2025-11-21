@@ -1,13 +1,14 @@
 from src.agents.classifier import classifier_agent , ClassificationResult
 from src.tools.github_api import get_open_pull_request
+from src.tools.search import web_search
 
-def router_agent(decision : ClassificationResult):
+def router_agent(query:str , decision : ClassificationResult):
     print(f"Routing to {decision.action} | Context {decision.repo}")
 
     if decision.action == "GITHUB_API":
         print(get_open_pull_request(decision.repo))
     elif decision.action == "SEARCH":
-        print("running search")
+        print( web_search(query=query))
     elif decision.action =="RAG":
          print("running RAG")
     else :
@@ -16,7 +17,7 @@ def router_agent(decision : ClassificationResult):
 
 def route_query(query:str):
     decision = classifier_agent.classify(query=query)
-    return router_agent(decision)
+    return router_agent(query , decision)
 
 if __name__ =="__main__":
-    route_query("How many open PRs in vercel/next.js?")
+    route_query("Latest news about the github")
