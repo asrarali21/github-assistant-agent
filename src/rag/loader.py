@@ -1,16 +1,17 @@
 from langchain_community.document_loaders import GitLoader
 
 
-
-loader = GitLoader(
-    clone_url="https://github.com/asrarali21/Quick-Diagnostics",
+def load_repo(url : str):
+    loader = GitLoader(
+    clone_url=url,
     branch="main",
     repo_path="./data/repo"
 )
 
-docs = loader.load()
+    docs = loader.load()
+    return docs
 
-print(docs)
+    print(docs)
 
 
 
