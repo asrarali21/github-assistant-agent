@@ -67,12 +67,10 @@ Examples:
 
 ### 3️⃣ RAG
 Choose **RAG** when:
-- The query is about **GitHub concepts / knowledge**, NOT repo-specific.
-Examples:
-- "How to raise a PR?"
-- "What is a pull request?"
-- "What is GitHub Actions?"
-- "Explain merge conflicts."
+It is a repo specific question ,
+when the user is asking about a specific repository.,
+when wants to know about the content of the repository.
+when the user want to do question and answer session about the repository.
 
 ## Output fields:
 - action = RAG | SEARCH | GITHUB_API

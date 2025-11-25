@@ -7,11 +7,9 @@ def load_repo(url : str):
     branch="main",
     repo_path="./data/repo"
 )
-
     docs = loader.load()
     return docs
 
-    print(docs)
 
 
 
