@@ -5,7 +5,8 @@ def get_retriever():
     retriever =  vs.as_retriever(
         search_type="similarity",
         search_kwargs={
-            "k": 3
+            "k": 10
         }
     )
+    print("retriver info : " , retriever)
     return retriever
