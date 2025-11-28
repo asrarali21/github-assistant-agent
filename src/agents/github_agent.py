@@ -27,7 +27,7 @@ class GitHubAgent:
         self.synthesizer_chain = self.synthesizer_prompt | self.llm | StrOutputParser()
 
     def run(self, query: str):
-        print(f"🤖 Processing: {query}")
+        print(f" Processing: {query}")
         
         # 1. Route the query and get raw data
         raw_result = route_query(query)

@@ -6,11 +6,11 @@ from langchain_core.runnables import RunnablePassthrough
 
 
 def format_docs(docs):
-    print("\n--- 🔍 RAG CHEF FOUND THESE INGREDIENTS ---")
+    print("\n RAG CHEF FOUND THESE INGREDIENTS ---")
     for i, doc in enumerate(docs):
         # Print the filename (source) and a snippet of content
         source = doc.metadata.get('source', 'Unknown Source')
-        print(f"📄 Ingredient {i+1}: {source}")
+        print(f"Ingredient {i+1}: {source}")
         print(f"   Content Snippet: {doc.page_content[:100]}...\n")
     print("-------------------------------------------\n")
 
