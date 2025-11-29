@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel , Field
 
 
-#in the below form the llm gives the response rather than just random json
+#in the below form the llm gives the response rather than just random response 
 class ClassificationResult(BaseModel):
     action:str = Field(... , description="RAG | SEARCH | GITHUB_API")
     repo:str | None =Field(None , description="Repository full name if needed")
