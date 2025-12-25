@@ -33,6 +33,19 @@ def ingest_repo_to_vectorstore(url , collection_name="github-repo-data"):
         retrieval_mode = RetrievalMode.HYBRID,
         url="http://localhost:6333"
     )
+    
+    # --- Polling for Indexing Completion ---
+    import time
+    print(f"Waiting for {collection_name} to be indexed...")
+    for _ in range(20): # Wait up to 20 seconds
+        count = vector_store.client.count(collection_name).count
+        if count > 0:
+            print(f"Indexing complete! Found {count} documents.")
+            break
+        time.sleep(1)
+    else:
+        print("Warning: Indexing might not be complete yet.")
+        
     return vector_store
 
 def connect_to_vector_store(collection_name="github-repo-data"):
