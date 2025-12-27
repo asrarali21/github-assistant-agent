@@ -1,9 +1,9 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 from .loader import load_repo
-from .embedding import get_dense_vector , get_sparse_vector
-from langchain_qdrant import QdrantVectorStore , RetrievalMode
-
+from .embedding import get_dense_vector, get_sparse_vector
+from langchain_qdrant import QdrantVectorStore, RetrievalMode
+import os
 
 def chunk_docs(docs):
     splitter = RecursiveCharacterTextSplitter(
@@ -12,52 +12,54 @@ def chunk_docs(docs):
     )
     return splitter.split_documents(docs)
 
-
 def get_qdrant_client():
-   return QdrantClient("localhost" , port=6333)
+    return QdrantClient(
+        url=os.getenv("QDRANT_URL"),
+        api_key=os.getenv("QDRANT_API_KEY")
+    )
 
-
-
-def ingest_repo_to_vectorstore(url , collection_name="github-repo-data"):
+def ingest_repo_to_vectorstore(url, collection_name="github-repo-data"):
     docs = load_repo(url)
     chunks = chunk_docs(docs)
 
-    dense=get_dense_vector()
-    sparse=get_sparse_vector()
+    dense = get_dense_vector()
+    sparse = get_sparse_vector()
+    client = get_qdrant_client()  # Use cloud client
 
     vector_store = QdrantVectorStore.from_documents(
         documents=chunks,
         embedding=dense,
         collection_name=collection_name,
         sparse_embedding=sparse,
-        retrieval_mode = RetrievalMode.HYBRID,
-        url="http://localhost:6333"
+        retrieval_mode=RetrievalMode.HYBRID,
+        url=os.getenv("QDRANT_URL"),  # Fix: Use cloud URL, not localhost
+        api_key=os.getenv("QDRANT_API_KEY")  # Add API key
     )
     
-    # --- Polling for Indexing Completion ---
+    # Wait for indexing
     import time
     print(f"Waiting for {collection_name} to be indexed...")
-    for _ in range(20): # Wait up to 20 seconds
+    for _ in range(20):
         count = vector_store.client.count(collection_name).count
         if count > 0:
-            print(f"Indexing complete! Found {count} documents.")
+            print(f"✅ Indexing complete! Found {count} documents.")
             break
         time.sleep(1)
     else:
-        print("Warning: Indexing might not be complete yet.")
+        print("⚠️ Warning: Indexing might not be complete yet.")
         
     return vector_store
 
 def connect_to_vector_store(collection_name="github-repo-data"):
-    client=get_qdrant_client()
-    dense=get_dense_vector()
-    sparse=get_sparse_vector()
+    client = get_qdrant_client()
+    dense = get_dense_vector()
+    sparse = get_sparse_vector()
 
     vector_store = QdrantVectorStore(
         client=client,
         embedding=dense,
         collection_name=collection_name,
         sparse_embedding=sparse,
-        retrieval_mode = RetrievalMode.HYBRID
+        retrieval_mode=RetrievalMode.HYBRID
     )
     return vector_store

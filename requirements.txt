@@ -8,4 +8,5 @@ fastembed
 pydantic
 python-dotenv
 fastapi
-uvicorn
+uvicorn[standard]
+httpx
